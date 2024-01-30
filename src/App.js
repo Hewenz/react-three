@@ -1,25 +1,22 @@
-import logo from './logo.svg';
-import './App.css';
 
+import './App.css';
+import {createRender,createScene,createAxis,createCamera,createCube,animate} from './three/index'
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+    const createThree=()=>{
+        const scene = createScene()
+        const camera = createCamera()
+        createAxis(scene)
+        const cube = createCube(scene)
+        const render =  createRender(scene,camera)
+        animate(scene,camera,render,cube)
+    }
+
+    createThree()
+    return (
+        <div className="App">
+        </div>
+    );
 }
 
 export default App;
