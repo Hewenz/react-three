@@ -1,31 +1,18 @@
 
 import './App.css';
 import {
-    createRender,
-    createScene,
-    createAxis,
-    createCamera,
-    createCube,
-    animate,
-    createControls,
-    createLight, createPlane
+    createThree
 } from './three/index'
+import {ChinaMap} from "./three/chinaMap";
+
 function App() {
+    // createThree()
 
-    const createThree=()=>{
-        const scene = createScene()
-        const camera = createCamera()
-        createAxis(scene)
-        createPlane(scene)
-        const cube = createCube(scene)
-        createLight (scene)
-        const render =  createRender(scene,camera)
-        const controls =  createControls(camera,render)
-        animate(scene,camera,render,controls,cube)
+    fetch("/sichuan.json").then(res=>res.json()).then((res)=>{
+        const map = new ChinaMap(res);
+        map.start()
+    })
 
-    }
-
-    createThree()
     return (
         <div className="App">
         </div>

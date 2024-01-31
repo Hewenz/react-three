@@ -117,3 +117,14 @@ export function animate(scene,camera,renderer,controls,cube) {
     controls.update();
 }
 
+export const createThree=()=>{
+    const scene = createScene()
+    const camera = createCamera()
+    createAxis(scene)
+    createPlane(scene)
+    const cube = createCube(scene)
+    createLight (scene)
+    const render =  createRender(scene,camera)
+    const controls =  createControls(camera,render)
+    animate(scene,camera,render,controls,cube)
+}

@@ -1,0 +1,205 @@
+import * as THREE from 'three';
+import {OrbitControls} from "three/addons";
+import {
+    CSS2DRenderer,
+    CSS2DObject,
+} from "three/examples/jsm/renderers/CSS2DRenderer.js";
+
+
+const coordinateTransformation = (x, y) => {
+    return (x1, y1) => {
+        return [x1 - x, y1 - y]
+    }
+}
+
+export class ChinaMap {
+    name = "中国地图"
+    data = {}
+    axis = null
+    map = null
+    camera = null
+    scene = null
+    renderer = null
+    labelRenderer=null
+
+    constructor(data) {
+        this.data = data
+    }
+
+    createRender() {
+        // alpha 背景透明 antialias 抗锯齿
+        const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
+        renderer.pixelRatio = window.devicePixelRatio;
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.querySelector('.App').append(renderer.domElement);
+        // 1. 渲染器能够渲染阴影效果
+        renderer.shadowMap.enabled = true;
+        this.renderer = renderer;
+
+
+        const labelRenderer = new CSS2DRenderer();
+        labelRenderer.domElement.style.position = "absolute";
+        labelRenderer.domElement.style.top = "0px";
+        labelRenderer.domElement.style.pointerEvents = "none";
+        labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        document.querySelector(".App").append(labelRenderer.domElement);
+        this.labelRenderer = labelRenderer;
+    }
+
+    createMap() {
+        const map = new THREE.Object3D();
+        const translate = coordinateTransformation(103.931804, 30.652329)
+        const createMesh = (data, color, depth) => {
+            const shape = new THREE.Shape();
+            data.forEach((item, idx) => {
+                const [x, y] = item
+                const [x1, y1] = translate(x, y)
+                if (idx === 0) shape.moveTo(x1, y1);
+                else shape.lineTo(x1, y1);
+            });
+
+            const shapeGeometry = new THREE.ExtrudeGeometry(shape, {depth: depth, bevelEnabled: false});
+            const shapematerial = new THREE.MeshStandardMaterial({
+                color: color,
+                side: THREE.DoubleSide
+            });
+
+            const mesh = new THREE.Mesh(shapeGeometry, shapematerial);
+            return mesh;
+        };
+        //创建城市描边
+        const createLine = (data, depth) => {
+            const points = [];
+            data.forEach((item) => {
+                const [x, y] = item
+                const [x1, y1] = translate(x, y)
+                points.push(new THREE.Vector3(x1, y1, 0));
+            });
+            const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+            const uplineMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
+            const downlineMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
+
+            const upLine = new THREE.Line(lineGeometry, uplineMaterial);
+            const downLine = new THREE.Line(lineGeometry, downlineMaterial);
+            downLine.position.z = -0.0001;
+            upLine.position.z = depth + 0.0001;
+            return [upLine, downLine];
+        };
+
+        const createLabel = (name, point, depth) => {
+            const div = document.createElement("div");
+            div.style.color = "#fff";
+            div.style.fontSize = "12px";
+            div.style.textShadow = "1px 1px 2px #047cd6";
+            div.textContent = name;
+            const label = new CSS2DObject(div);
+            label.scale.set(0.01, 0.01, 0.01);
+            const [x, y] = point;
+            const [x1, y1] = translate(x, y)
+            label.position.set(x1, y1, depth);
+            return label;
+        };
+
+        this.data.features.forEach(feature => {
+            const unit = new THREE.Object3D();
+            const {name,centroid, center,} = feature.properties;
+            const {coordinates, type} = feature.geometry;
+            const color = new THREE.Color(`hsl(${233},${Math.random() * 30 + 55}%,${Math.random() * 30 + 55}%)`).getHex();
+            const depth = Math.random() * 0.3 + 0.3;
+
+            const label = createLabel(name,centroid||center ||[0,0],depth)
+
+            coordinates.forEach((coordinate) => {
+                if (type === "MultiPolygon") coordinate.forEach((item) => fn(item));
+                if (type === "Polygon") fn(coordinate);
+
+                function fn(coordinate) {
+                    const mesh = createMesh(coordinate, color, depth);
+                    const line = createLine(coordinate, depth)
+                    unit.add(mesh, ...line);
+                }
+            });
+            map.add(unit,label)
+        })
+        this.map = map
+        this.scene.add(this.map)
+    }
+
+
+    createCamera() {
+        const camera = new THREE.PerspectiveCamera(
+            75,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+        );
+        camera.position.set(1, -5, 6);
+        this.camera = camera
+    }
+
+    createLight() {
+        const ambientLight = new THREE.AmbientLight(0xd4e7fd, 4);
+        this.scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xd4e7fd, 1);
+        directionalLight.position.set(10, 10, 10);
+        this.scene.add(directionalLight);
+
+
+        // 2. 该方向会投射阴影效果
+        directionalLight.castShadow = true;
+    }
+
+    createScene() {
+        const scene = new THREE.Scene();
+        this.scene = scene
+    }
+
+    createAxis = () => {
+        const axis = new THREE.AxesHelper(5);
+        this.scene.add(axis);
+        this.axis = axis
+    }
+
+    createCube() {
+        const geometry = new THREE.BoxGeometry(4, 4, 4);
+        const material = new THREE.MeshStandardMaterial({color: 0xff0000});
+        const cube = new THREE.Mesh(geometry, material);
+        cube.rotation.y = Math.PI / 4;
+        cube.castShadow = true;
+        this.scene.add(cube);
+    }
+
+    createControls() {
+        const controls = new OrbitControls(this.camera, this.renderer.domElement);
+        controls.update();
+        this.controls = controls
+    }
+
+    animate() {
+        requestAnimationFrame(() => this.animate());
+
+        this.renderer.render(this.scene, this.camera);
+        this.labelRenderer.render(this.scene, this.camera);
+        // 创建一个轨道控制器
+
+        this.controls.update();
+    }
+
+    start() {
+
+        this.createScene()
+        this.createCamera()
+        this.createMap()
+        this.createAxis()
+        // this.createCube()
+        this.createLight()
+        this.createRender()
+        this.createControls()
+        this.animate()
+        window.addEventListener("pointerdown", (event) => {
+            console.log(event)
+        })
+        // this.createMap()
+    }
+}
