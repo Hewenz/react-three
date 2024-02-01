@@ -20,7 +20,7 @@ export class ChinaMap {
     camera = null
     scene = null
     renderer = null
-    labelRenderer=null
+    labelRenderer = null
 
     constructor(data) {
         this.data = data
@@ -52,8 +52,7 @@ export class ChinaMap {
         const createMesh = (data, color, depth) => {
             const shape = new THREE.Shape();
             data.forEach((item, idx) => {
-                const [x, y] = item
-                const [x1, y1] = translate(x, y)
+                const [x1, y1] = translate(...item)
                 if (idx === 0) shape.moveTo(x1, y1);
                 else shape.lineTo(x1, y1);
             });
@@ -61,7 +60,11 @@ export class ChinaMap {
             const shapeGeometry = new THREE.ExtrudeGeometry(shape, {depth: depth, bevelEnabled: false});
             const shapematerial = new THREE.MeshStandardMaterial({
                 color: color,
-                side: THREE.DoubleSide
+                transparent: true,
+                emissive: 0x000000,
+                roughness: 0.45,
+                // metalness: 0.8,
+                // side: THREE.DoubleSide
             });
 
             const mesh = new THREE.Mesh(shapeGeometry, shapematerial);
@@ -93,21 +96,20 @@ export class ChinaMap {
             div.style.textShadow = "1px 1px 2px #047cd6";
             div.textContent = name;
             const label = new CSS2DObject(div);
-            label.scale.set(0.01, 0.01, 0.01);
-            const [x, y] = point;
-            const [x1, y1] = translate(x, y)
-            label.position.set(x1, y1, depth);
+            // label.scale.set(0.01, 0.01, 0.01);
+            const [x1, y1] = translate(...point);
+            label.position.set(x1, y1, depth+0.3);
             return label;
         };
 
         this.data.features.forEach(feature => {
             const unit = new THREE.Object3D();
-            const {name,centroid, center,} = feature.properties;
+            const {name, centroid, center,} = feature.properties;
             const {coordinates, type} = feature.geometry;
             const color = new THREE.Color(`hsl(${233},${Math.random() * 30 + 55}%,${Math.random() * 30 + 55}%)`).getHex();
             const depth = Math.random() * 0.3 + 0.3;
 
-            const label = createLabel(name,centroid||center ||[0,0],depth)
+            const label = createLabel(name, centroid || center || [0, 0], depth)
 
             coordinates.forEach((coordinate) => {
                 if (type === "MultiPolygon") coordinate.forEach((item) => fn(item));
@@ -119,7 +121,7 @@ export class ChinaMap {
                     unit.add(mesh, ...line);
                 }
             });
-            map.add(unit,label)
+            map.add(unit, label)
         })
         this.map = map
         this.scene.add(this.map)
@@ -133,7 +135,7 @@ export class ChinaMap {
             0.1,
             1000
         );
-        camera.position.set(1, -5, 6);
+        camera.position.set(0, -5, 6);
         this.camera = camera
     }
 
@@ -181,8 +183,6 @@ export class ChinaMap {
 
         this.renderer.render(this.scene, this.camera);
         this.labelRenderer.render(this.scene, this.camera);
-        // 创建一个轨道控制器
-
         this.controls.update();
     }
 
@@ -197,9 +197,33 @@ export class ChinaMap {
         this.createRender()
         this.createControls()
         this.animate()
+        let intersect
         window.addEventListener("pointerdown", (event) => {
-            console.log(event)
+            const mouse = new THREE.Vector2();
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, this.camera);
+
+            const intersects = raycaster
+                .intersectObjects(this.map.children)
+                .filter((item) => item.object.type !== "Line");
+            if(intersect)translucency(intersect,1)
+            if (Array.isArray(intersects) && intersects.length > 0) {
+                //数据有时会将一个市分为两个多边形a
+                intersect = intersects[0].object.parent
+                translucency(intersect,0.4)
+            }
+            function translucency(intersect,opacity){
+                intersect.children.forEach(item => {
+                    if (item.type === "Mesh")
+                        //设置透明需要将材质的transparent属性设置为true，
+                        //这里在初始化材质（material）时已经设置，也可以在这里一起设置
+                        item.material.opacity = opacity
+                })
+            }
         })
         // this.createMap()
     }
+
 }

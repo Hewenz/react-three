@@ -1,8 +1,5 @@
 
 import './App.css';
-import {
-    createThree
-} from './three/index'
 import {ChinaMap} from "./three/chinaMap";
 
 function App() {
