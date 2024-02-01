@@ -1,5 +1,6 @@
 
 import './App.css';
+import {createThree} from "./three";
 import {ChinaMap} from "./three/chinaMap";
 
 function App() {

@@ -50,12 +50,14 @@ export class ChinaMap {
         const map = new THREE.Object3D();
         const translate = coordinateTransformation(103.931804, 30.652329)
         const createMesh = (data, color, depth) => {
-            const shape = new THREE.Shape();
-            data.forEach((item, idx) => {
-                const [x1, y1] = translate(...item)
-                if (idx === 0) shape.moveTo(x1, y1);
-                else shape.lineTo(x1, y1);
-            });
+            const shape = new THREE.Shape(data.map(item=>new THREE.Vector2(...translate(...item))));
+
+            //上下两种写法都可以
+            // data.forEach((item, idx) => {
+            //     const [x1, y1] = translate(...item)
+            //     if (idx === 0) shape.moveTo(x1, y1);
+            //     else shape.lineTo(x1, y1);
+            // });
 
             const shapeGeometry = new THREE.ExtrudeGeometry(shape, {depth: depth, bevelEnabled: false});
             const shapematerial = new THREE.MeshStandardMaterial({
@@ -72,12 +74,8 @@ export class ChinaMap {
         };
         //创建城市描边
         const createLine = (data, depth) => {
-            const points = [];
-            data.forEach((item) => {
-                const [x, y] = item
-                const [x1, y1] = translate(x, y)
-                points.push(new THREE.Vector3(x1, y1, 0));
-            });
+            const points = data.map(item=>new THREE.Vector2(...translate(...item)));
+
             const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
             const uplineMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
             const downlineMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
@@ -112,7 +110,7 @@ export class ChinaMap {
             const label = createLabel(name, centroid || center || [0, 0], depth)
 
             coordinates.forEach((coordinate) => {
-                if (type === "MultiPolygon") coordinate.forEach((item) => fn(item));
+                if (type === "MultiPolygon") fn(coordinate[0]) //coordinate.forEach((item) => fn(item));
                 if (type === "Polygon") fn(coordinate);
 
                 function fn(coordinate) {

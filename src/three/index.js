@@ -68,7 +68,11 @@ export const createCube=(scene)=>{
 export  const createPlane=(scene)=>{
     const planeGeometry = new THREE.PlaneGeometry(20, 20);
     const planeGeometry2 = new THREE.PlaneGeometry(20, 10);
-    const planeMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    const planeMaterial = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        emissive: 0x000000,
+        roughness: 0.45,
+    });
     const planeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
     const planeMesh2 = new THREE.Mesh(planeGeometry2, planeMaterial);
     const planeMesh3 = new THREE.Mesh(planeGeometry2, planeMaterial);
