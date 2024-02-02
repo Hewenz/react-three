@@ -110,12 +110,14 @@ export class ChinaMap {
             const label = createLabel(name, centroid || center || [0, 0], depth)
 
             coordinates.forEach((coordinate) => {
-                if (type === "MultiPolygon") fn(coordinate[0]) //coordinate.forEach((item) => fn(item));
+                if (type === "MultiPolygon")  coordinate.forEach((item) => fn(item));
                 if (type === "Polygon") fn(coordinate);
 
                 function fn(coordinate) {
                     const mesh = createMesh(coordinate, color, depth);
                     const line = createLine(coordinate, depth)
+
+                    mesh.userData = {name}
                     unit.add(mesh, ...line);
                 }
             });
@@ -170,6 +172,20 @@ export class ChinaMap {
         this.scene.add(cube);
     }
 
+    createBGImage(){
+        const imgs = new THREE.Group() // Group 基本等于 Object3D
+        const bgTexture = (new THREE.TextureLoader()).load( './images/bg-texture.png' );
+        bgTexture.colorSpace = THREE.SRGBColorSpace;
+
+        //平面形状
+        const geometry = new THREE.PlaneGeometry( 400,400 );
+        const material = new THREE.MeshBasicMaterial( { map: bgTexture, depthWrite: false, transparent: true} );
+        const plane = new THREE.Mesh( geometry, material );
+
+        imgs.add(plane)
+        this.scene.add(plane);
+    }
+
     createControls() {
         const controls = new OrbitControls(this.camera, this.renderer.domElement);
         controls.update();
@@ -207,6 +223,8 @@ export class ChinaMap {
                 .intersectObjects(this.map.children)
                 .filter((item) => item.object.type !== "Line");
             if(intersect)translucency(intersect,1)
+            console.log(intersects?.[0]?.object?.userData?.name) //答应点击的城市名
+            console.log(intersect)
             if (Array.isArray(intersects) && intersects.length > 0) {
                 //数据有时会将一个市分为两个多边形a
                 intersect = intersects[0].object.parent
