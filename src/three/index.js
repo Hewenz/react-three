@@ -89,6 +89,7 @@ export  const createPlane=(scene)=>{
     scene.add(planeMesh3);
 }
 
+
 export const createLight=(scene)=>{
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);

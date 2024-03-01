@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {OrbitControls} from "three/addons";
+import { OrbitControls } from "three/addons";
 import {
     CSS2DRenderer,
     CSS2DObject,
@@ -21,6 +21,7 @@ export class ChinaMap {
     scene = null
     renderer = null
     labelRenderer = null
+    animationId = null
 
     constructor(data) {
         this.data = data
@@ -28,7 +29,7 @@ export class ChinaMap {
 
     createRender() {
         // alpha 背景透明 antialias 抗锯齿
-        const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.pixelRatio = window.devicePixelRatio;
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.querySelector('.App').append(renderer.domElement);
@@ -42,6 +43,7 @@ export class ChinaMap {
         labelRenderer.domElement.style.top = "0px";
         labelRenderer.domElement.style.pointerEvents = "none";
         labelRenderer.setSize(window.innerWidth, window.innerHeight);
+
         document.querySelector(".App").append(labelRenderer.domElement);
         this.labelRenderer = labelRenderer;
     }
@@ -49,8 +51,9 @@ export class ChinaMap {
     createMap() {
         const map = new THREE.Object3D();
         const translate = coordinateTransformation(103.931804, 30.652329)
+        //创建城市地块
         const createMesh = (data, color, depth) => {
-            const shape = new THREE.Shape(data.map(item=>new THREE.Vector2(...translate(...item))));
+            const shape = new THREE.Shape(data.map(item => new THREE.Vector2(...translate(...item))));
 
             //上下两种写法都可以
             // data.forEach((item, idx) => {
@@ -59,7 +62,7 @@ export class ChinaMap {
             //     else shape.lineTo(x1, y1);
             // });
 
-            const shapeGeometry = new THREE.ExtrudeGeometry(shape, {depth: depth, bevelEnabled: false});
+            const shapeGeometry = new THREE.ExtrudeGeometry(shape, { depth: depth, bevelEnabled: false });
             const shapematerial = new THREE.MeshStandardMaterial({
                 color: color,
                 transparent: true,
@@ -74,11 +77,11 @@ export class ChinaMap {
         };
         //创建城市描边
         const createLine = (data, depth) => {
-            const points = data.map(item=>new THREE.Vector2(...translate(...item)));
+            const points = data.map(item => new THREE.Vector2(...translate(...item)));
 
             const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-            const uplineMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
-            const downlineMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
+            const uplineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
+            const downlineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
 
             const upLine = new THREE.Line(lineGeometry, uplineMaterial);
             const downLine = new THREE.Line(lineGeometry, downlineMaterial);
@@ -86,7 +89,7 @@ export class ChinaMap {
             upLine.position.z = depth + 0.0001;
             return [upLine, downLine];
         };
-
+        //创建城市名称
         const createLabel = (name, point, depth) => {
             const div = document.createElement("div");
             div.style.color = "#fff";
@@ -96,28 +99,29 @@ export class ChinaMap {
             const label = new CSS2DObject(div);
             // label.scale.set(0.01, 0.01, 0.01);
             const [x1, y1] = translate(...point);
-            label.position.set(x1, y1, depth+0.3);
+            label.position.set(x1, y1, depth + 0.3);
             return label;
         };
 
         this.data.features.forEach(feature => {
             const unit = new THREE.Object3D();
-            const {name, centroid, center,} = feature.properties;
-            const {coordinates, type} = feature.geometry;
+            const { name, centroid, center, } = feature.properties;
+            const { coordinates, type } = feature.geometry;
+
             const color = new THREE.Color(`hsl(${233},${Math.random() * 30 + 55}%,${Math.random() * 30 + 55}%)`).getHex();
             const depth = Math.random() * 0.3 + 0.3;
 
             const label = createLabel(name, centroid || center || [0, 0], depth)
 
             coordinates.forEach((coordinate) => {
-                if (type === "MultiPolygon")  coordinate.forEach((item) => fn(item));
+                if (type === "MultiPolygon") coordinate.forEach((item) => fn(item));
                 if (type === "Polygon") fn(coordinate);
 
                 function fn(coordinate) {
                     const mesh = createMesh(coordinate, color, depth);
                     const line = createLine(coordinate, depth)
 
-                    mesh.userData = {name}
+                    mesh.userData = { name }
                     unit.add(mesh, ...line);
                 }
             });
@@ -126,7 +130,6 @@ export class ChinaMap {
         this.map = map
         this.scene.add(this.map)
     }
-
 
     createCamera() {
         const camera = new THREE.PerspectiveCamera(
@@ -158,6 +161,7 @@ export class ChinaMap {
     }
 
     createAxis = () => {
+        //辅助坐标系
         const axis = new THREE.AxesHelper(5);
         this.scene.add(axis);
         this.axis = axis
@@ -165,22 +169,22 @@ export class ChinaMap {
 
     createCube() {
         const geometry = new THREE.BoxGeometry(4, 4, 4);
-        const material = new THREE.MeshStandardMaterial({color: 0xff0000});
+        const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
         const cube = new THREE.Mesh(geometry, material);
         cube.rotation.y = Math.PI / 4;
         cube.castShadow = true;
         this.scene.add(cube);
     }
 
-    createBGImage(){
+    createBGImage() {
         const imgs = new THREE.Group() // Group 基本等于 Object3D
-        const bgTexture = (new THREE.TextureLoader()).load( './images/bg-texture.png' );
+        const bgTexture = (new THREE.TextureLoader()).load('./images/bg-texture.png');
         bgTexture.colorSpace = THREE.SRGBColorSpace;
 
         //平面形状
-        const geometry = new THREE.PlaneGeometry( 400,400 );
-        const material = new THREE.MeshBasicMaterial( { map: bgTexture, depthWrite: false, transparent: true} );
-        const plane = new THREE.Mesh( geometry, material );
+        const geometry = new THREE.PlaneGeometry(400, 400);
+        const material = new THREE.MeshBasicMaterial({ map: bgTexture, depthWrite: false, transparent: true });
+        const plane = new THREE.Mesh(geometry, material);
 
         imgs.add(plane)
         this.scene.add(plane);
@@ -193,7 +197,7 @@ export class ChinaMap {
     }
 
     animate() {
-        requestAnimationFrame(() => this.animate());
+        this.animationId = requestAnimationFrame(() => this.animate());
 
         this.renderer.render(this.scene, this.camera);
         this.labelRenderer.render(this.scene, this.camera);
@@ -212,7 +216,7 @@ export class ChinaMap {
         this.createControls()
         this.animate()
         let intersect
-        window.addEventListener("pointerdown", (event) => {
+        this.listener = (event) => {
             const mouse = new THREE.Vector2();
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -222,15 +226,15 @@ export class ChinaMap {
             const intersects = raycaster
                 .intersectObjects(this.map.children)
                 .filter((item) => item.object.type !== "Line");
-            if(intersect)translucency(intersect,1)
-            console.log(intersects?.[0]?.object?.userData?.name) //答应点击的城市名
-            console.log(intersect)
+            if (intersect) translucency(intersect, 1)
+            // console.log(intersects?.[0]?.object?.userData?.name) //答应点击的城市名
+            // console.log(intersect)
             if (Array.isArray(intersects) && intersects.length > 0) {
                 //数据有时会将一个市分为两个多边形a
                 intersect = intersects[0].object.parent
-                translucency(intersect,0.4)
+                translucency(intersect, 0.4)
             }
-            function translucency(intersect,opacity){
+            function translucency(intersect, opacity) {
                 intersect.children.forEach(item => {
                     if (item.type === "Mesh")
                         //设置透明需要将材质的transparent属性设置为true，
@@ -238,8 +242,24 @@ export class ChinaMap {
                         item.material.opacity = opacity
                 })
             }
-        })
+        }
+        window.addEventListener("pointerdown", this.listener)
         // this.createMap()
     }
 
+    dispose() {
+        
+        cancelAnimationFrame(this.animationId)
+        window.removeEventListener("pointerdown", this.listener, false);
+        this.renderer.dispose();
+        this.scene.clear();
+        this.camera.clear();
+        this.labelRenderer.domElement =""
+        this.renderer = null
+        this.scene = null
+        this.camera = null
+        this.labelRenderer = null
+
+        document.querySelector('.App').innerHTML = ""
+    }
 }
