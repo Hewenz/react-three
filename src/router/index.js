@@ -1,28 +1,8 @@
-import * as React from "react";
 import {
     createBrowserRouter,
-    Link,
 } from "react-router-dom";
-import Blender from "../page/blender";
+import routes from "./routes";
 
-const router = createBrowserRouter([
-    {
-        path: "/",
-        element: (
-            <div>
-                <h1>Hello World</h1>
-                <Link to="about">About Us</Link>
-            </div>
-        ),
-    },
-    {
-        path: "about",
-        element: <div>About</div>,
-    },
-    {
-        path:"blender",
-        element:<Blender/>
-    },
-]);
+const router = createBrowserRouter(routes);
 
 export default router;
