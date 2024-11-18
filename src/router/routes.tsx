@@ -14,6 +14,8 @@ import {
 import Layout from "../components/Layout";
 import First from "../page/First";
 import Second from "../page/Second";
+import Third from "../page/Third";
+import Fourth from "../page/Fourth";
 // import Blender from "../page/blender";
 const Dashboard = bundleIcon(Board20Filled, Board20Regular);
 const Announcements = bundleIcon(MegaphoneLoud20Filled, MegaphoneLoud20Regular);
@@ -42,6 +44,18 @@ export const Routes = [
         name: "Second",
         icon: <Dashboard />,
         element: <Second />,
+    },
+    {
+        path: "/third",
+        name: "Third",
+        icon: <Dashboard />,
+        element: <Third />,
+    },
+    {
+        path: "/fourth",
+        name: "Fourth",
+        icon: <Dashboard />,
+        element: <Fourth />,
     },
     {
         path: "/test",

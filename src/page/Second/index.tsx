@@ -93,11 +93,16 @@ const Second = () => {
             0, 1, 2,
             2, 3, 0
         ]);
+        bufferGeometry2.addGroup(0, 3, 0);
+        bufferGeometry2.addGroup(3, 3, 1);
         bufferGeometry2.setAttribute('position', new THREE.BufferAttribute(vertices2, 3)); 
         bufferGeometry2.setIndex(new THREE.BufferAttribute(indices, 1));
 
         const noodle = new THREE.Mesh(bufferGeometry, material);
-        const noodle2 = new THREE.Mesh(bufferGeometry2, material);
+        const noodle2 = new THREE.Mesh(bufferGeometry2, [
+            new THREE.MeshBasicMaterial({ color: 0x0000ff, side: THREE.DoubleSide }),
+            new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide })
+        ]);
 
         scene.add(noodle);
         scene.add(noodle2);
