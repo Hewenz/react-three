@@ -10,10 +10,10 @@ import {
     MegaphoneLoud20Filled,
     MegaphoneLoud20Regular,
     bundleIcon,
-    PersonCircle32Regular,
 } from "@fluentui/react-icons";
 import Layout from "../components/Layout";
 import First from "../page/First";
+import Second from "../page/Second";
 // import Blender from "../page/blender";
 const Dashboard = bundleIcon(Board20Filled, Board20Regular);
 const Announcements = bundleIcon(MegaphoneLoud20Filled, MegaphoneLoud20Regular);
@@ -34,8 +34,14 @@ export const Routes = [
     {
         path: "/first",
         name: "First",
-        icon: <Announcements />,
+        icon: <Dashboard />,
         element: <First />,
+    },
+    {
+        path: "/second",
+        name: "Second",
+        icon: <Dashboard />,
+        element: <Second />,
     },
     {
         path: "/test",
