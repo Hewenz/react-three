@@ -37,11 +37,11 @@ const useSimpleThree = () => {
 
 
         const controls = new OrbitControls(camera, renderer.domElement);
-
+        let animationId: number;
         function animate() {
             controls.update();
             TWEEN.update();
-            requestAnimationFrame(animate);
+            animationId = requestAnimationFrame(animate);
             if (!scene || !camera) return;
             renderer.render(scene, camera);
         }
@@ -56,9 +56,11 @@ const useSimpleThree = () => {
         return () => {
             console.log("unmount");
             window.removeEventListener("resize", onResize);
-            box.removeChild(renderer.domElement);
+            scene.remove.apply(scene, scene.children);
             renderer.dispose();
             camera.clearViewOffset();
+            cancelAnimationFrame(animationId);
+            box.removeChild(renderer.domElement);
         };
     }, [box, scene, camera]);
     class Simple {
@@ -110,7 +112,7 @@ const Fourth = () => {
         //射线是 用户鼠标点击坐标映射到从摄像机的镜头弧面上的坐标的法线，法线是垂直于该弧面坐标切平面的向量
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
-        
+
 
 
         const handleClick = (event: any) => {

@@ -32,10 +32,11 @@ const useSimpleThree = (box: Element | null, scene?: THREE.Scene) => {
 
         const controls = new OrbitControls(camera, renderer.domElement);
 
+        let animationId: number;
         function animate() {
             controls.update();
-            requestAnimationFrame(animate);
-            if(!scene) return;
+            animationId = requestAnimationFrame(animate);
+            if (!scene) return;
             renderer.render(scene, camera);
         }
         animate();
@@ -49,10 +50,12 @@ const useSimpleThree = (box: Element | null, scene?: THREE.Scene) => {
         return () => {
             console.log("unmount");
             window.removeEventListener("resize", onResize);
-            box.removeChild(renderer.domElement);
-            
+            scene.remove.apply(scene, scene.children);
             renderer.dispose();
             camera.clearViewOffset();
+            cancelAnimationFrame(animationId);
+            box.removeChild(renderer.domElement);
+
         };
     }, [box, scene]);
     return {};
@@ -61,7 +64,7 @@ const useSimpleThree = (box: Element | null, scene?: THREE.Scene) => {
 const Third = () => {
     const classes = useStyles();
     const box = document.querySelector("#third");
-    const [scene,setScene] = useState<THREE.Scene>();
+    const [scene, setScene] = useState<THREE.Scene>();
     useSimpleThree(box, scene);
     useEffect(() => {
 
@@ -72,11 +75,11 @@ const Third = () => {
         loader.load('./models/shiba/scene.gltf', function (gltf) {
             console.log(gltf);
             scene.add(gltf.scene);
-        } );
+        });
         loader.load('./models/60s_office_props.glb', function (gltf) {
             console.log(gltf);
             scene.add(gltf.scene);
-        } );
+        });
         setScene(scene);
     }, []);
 
