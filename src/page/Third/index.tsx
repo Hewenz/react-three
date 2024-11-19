@@ -20,6 +20,10 @@ const useSimpleThree = (box: Element | null, scene?: THREE.Scene) => {
         // 场景与物品
         scene.add(axesHelper);
 
+        const light = new THREE.AmbientLight(0x404040); // soft white light
+        light.intensity = 80;
+        scene.add(light);
+
         //渲染器
         const renderer = new THREE.WebGLRenderer();
         renderer.setSize(box.clientWidth, box.clientHeight);
@@ -50,12 +54,12 @@ const useSimpleThree = (box: Element | null, scene?: THREE.Scene) => {
         return () => {
             console.log("unmount");
             window.removeEventListener("resize", onResize);
-            scene.remove.apply(scene, scene.children);
+            scene.remove.apply(scene, scene.children); //与scene.remove(...scene.children)等价
             renderer.dispose();
+            controls.dispose();
             camera.clearViewOffset();
             cancelAnimationFrame(animationId);
             box.removeChild(renderer.domElement);
-
         };
     }, [box, scene]);
     return {};

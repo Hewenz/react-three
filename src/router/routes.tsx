@@ -16,6 +16,8 @@ import First from "../page/First";
 import Second from "../page/Second";
 import Third from "../page/Third";
 import Fourth from "../page/Fourth";
+import Cannon from "../page/Cannon";
+import Crazy from "../page/Crazy";
 // import Blender from "../page/blender";
 const Dashboard = bundleIcon(Board20Filled, Board20Regular);
 const Announcements = bundleIcon(MegaphoneLoud20Filled, MegaphoneLoud20Regular);
@@ -56,6 +58,18 @@ export const Routes = [
         name: "Fourth",
         icon: <Dashboard />,
         element: <Fourth />,
+    },
+    {
+        path: "/cannon",
+        name: "Cannon",
+        icon: <Dashboard />,
+        element: <Cannon />,
+    },
+    {
+        path: "/crazy",
+        name: "Crazy",
+        icon: <Dashboard />,
+        element: <Crazy />,
     },
     {
         path: "/test",
@@ -101,9 +115,9 @@ const RootRoutes = [
         children: Routes,
     },
     {
-        path: "/about",
-        name: "About",
-        element: <div>About</div>,
+        path: "/404",
+        name: "404",
+        element: <div>404</div>,
     }
 ];
 

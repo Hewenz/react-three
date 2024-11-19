@@ -35,6 +35,8 @@ const useSimpleThree = () => {
         renderer.setSize(box.clientWidth, box.clientHeight);
         box.appendChild(renderer.domElement);
 
+        const light = new THREE.AmbientLight(0x404040); // soft white light
+        scene.add(light);
 
         const controls = new OrbitControls(camera, renderer.domElement);
         let animationId: number;
@@ -58,6 +60,7 @@ const useSimpleThree = () => {
             window.removeEventListener("resize", onResize);
             scene.remove.apply(scene, scene.children);
             renderer.dispose();
+            controls.dispose();
             camera.clearViewOffset();
             cancelAnimationFrame(animationId);
             box.removeChild(renderer.domElement);
