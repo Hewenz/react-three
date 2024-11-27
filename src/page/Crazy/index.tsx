@@ -40,10 +40,10 @@ function Box(props: MeshProps) {
             onClick={(event) => click(!clicked)}
             onPointerOver={(event) => hover(true)}
             onPointerOut={(event) => hover(false)}
-            onPointerMove={handlePointerMove}
-            onPointerUp={(event) => {
-                api.wakeUp();
-            }}
+            // onPointerMove={handlePointerMove}
+            // onPointerUp={(event) => {
+            //     api.wakeUp();
+            // }}
         >
             <boxGeometry args={[1, 1, 1]} />
             <meshStandardMaterial color={hovered ? 'hotpink' : 'white'} />
@@ -102,7 +102,7 @@ const Crazy = () => {
                 <Box position={[1.2, 0, 0]} />
                 <Plane position={[0, -1, 0]} receiveShadow />
             </Physics>
-            {/* <OrbitControls /> */}
+            <OrbitControls />
             <Grid
                 sectionSize={3}
                 sectionColor={'purple'}

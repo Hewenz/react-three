@@ -74,6 +74,7 @@ const First = () => {
         const gui = new GUI();
         gui.add(eventObj, "test");
         gui.add(cube.position, "x", -10, 10).step(1).name("cube_x");
+        gui.addColor(material,"color").name("cube_color");
         const cubePFolder = gui.addFolder("cubeP");
         cubePFolder.add(materialP, "wireframe").name("wireframe");
         return () => {
