@@ -4,6 +4,7 @@
         "fluentui",
         "GLTF",
         "Raycaster",
-        "wireframe"
+        "wireframe",
+        "yoyo"
     ]
 }

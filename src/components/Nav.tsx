@@ -27,7 +27,7 @@ const Nav = () => {
             multiple={false}
         >
             <NavDrawerHeader>
-                Three
+                <h1>THREE DEMO</h1>
             </NavDrawerHeader>
             <NavDrawerBody>
                 {
