@@ -144,8 +144,6 @@ const DirectionalLight = ({ target }: { target: any }) => {
     </>
 }
 
-
-
 const LightDemo = () => {
     const boxMesh = useRef<THREE.Mesh>(null);
     const [isDrag, setIsDrag] = useState(false)
