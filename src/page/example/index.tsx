@@ -1,9 +1,9 @@
 import { Canvas, extend, MeshProps, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from 'three'
-import { Debug, Physics, useBox, usePlane, useSphere } from '@react-three/cannon';
+import { Debug, Physics, useBox, usePlane, useSphere, useTrimesh } from '@react-three/cannon';
 import { useEffect, useRef, useState } from "react";
-import { useControls } from "leva";
-import { DragControls, Grid, MeshTransmissionMaterial, OrbitControls, Outlines, useHelper } from "@react-three/drei";
+import { button, useControls } from "leva";
+import { DragControls, Environment, Grid, MeshTransmissionMaterial, OrbitControls, Outlines, useHelper, useGLTF } from "@react-three/drei";
 
 
 const rfs = THREE.MathUtils.randFloatSpread
@@ -21,7 +21,7 @@ const Plane = (props: MeshProps) => {
 
     return (
         <mesh {...props} ref={ref} >
-            <planeGeometry args={[20, 20]} />
+            <planeGeometry args={[40, 40]} />
             <meshStandardMaterial color="lightblue" side={THREE.DoubleSide} />
         </mesh>
     )
@@ -65,7 +65,7 @@ function Clump({ mat = new THREE.Matrix4(), vec = new THREE.Vector3(), ...props 
     return (
         <instancedMesh ref={ref} castShadow receiveShadow args={[undefined, undefined, 20]}>
             <Outlines thickness={outlines} />
-            <meshStandardMaterial  toneMapped={false} vertexColors />
+            <meshStandardMaterial toneMapped={false} vertexColors />
             <sphereGeometry args={[1, 32, 16]}>
                 <instancedBufferAttribute attach="attributes-color" args={[colors, 3]} />
             </sphereGeometry>
@@ -73,24 +73,49 @@ function Clump({ mat = new THREE.Matrix4(), vec = new THREE.Vector3(), ...props 
     )
 }
 
+function Clump2({ mat = new THREE.Matrix4(), vec = new THREE.Vector3(), ...props }) {
+    const [ref, api] = useSphere<any>(() => ({ args: [1], mass: 0.5, angularDamping: 0.5, linearDamping: 0.65, position: [rfs(20), rfs(20), rfs(20)] }))
+
+    useFrame((state) => {
+        for (let i = 0; i < 3; i++) {
+            ref.current.getMatrixAt(i, mat)
+            api.at(i).applyForce(vec.setFromMatrixPosition(mat).normalize().multiplyScalar(-20).toArray(), [0, 0, 0])
+        }
+    })
+
+    return (
+        <instancedMesh ref={ref} castShadow receiveShadow args={[undefined, undefined, 3]}>
+            <MeshTransmissionMaterial color="white" />
+            <sphereGeometry args={[1, 32, 16]} />
+        </instancedMesh>
+    )
+}
+
 function Sphere(props: MeshProps) {
     // const ref = useRef<THREE.Mesh>(null)
-    const [ref, api] = useSphere<THREE.Mesh>(() => ({ args: [2, 32, 16], mass: 1, ...props as any }));
-
+    const [ref, api] = useSphere<THREE.Mesh>(() => ({ args: [2, 32, 16], mass: 5, ...props as any }));
+    useControls("Sphere", {
+        "reset": button(() => {
+            api.velocity.set(0, 0, 0);
+            api.angularVelocity.set(0, 0, 0);
+            api.position.set(10, 10, 5);
+        }),
+    });
     return (
         <mesh
             ref={ref}
             onPointerDown={() => {
                 const position = new THREE.Vector3();
                 ref.current!.getWorldPosition(position);
-                const force = position.clone().negate().normalize().multiplyScalar(4000);
+                const force = position.clone().negate().normalize().multiplyScalar(16000);
                 api.applyForce(force.toArray(), [0, 0, 0]);
                 console.log('click')
             }}
         >
-            <meshStandardMaterial color="white" />
+            <meshStandardMaterial color="white" >
+            </meshStandardMaterial>
             {/* <Outlines thickness={1} /> */}
-            <sphereGeometry />
+            <sphereGeometry args={[2, 32, 16]}/>
         </mesh>
     )
 }
@@ -101,7 +126,7 @@ const SpotLight = () => {
     return <spotLight
         color={"white"}
         ref={ref}
-        intensity={5}
+        intensity={1}
         angle={Math.PI / 4}
         decay={0}
         penumbra={1}
@@ -109,6 +134,81 @@ const SpotLight = () => {
         castShadow
     />
 }
+const findGeometry = (object: any) => {
+    let geometries: any = [];
+    object.traverse((child: any) => {
+        if (child.isMesh) {
+            geometries.push(child.geometry);
+        }
+    });
+    return geometries;
+};
+const Shiba = () => {
+    const gltf = useGLTF('models/shiba/scene.gltf')
+    const geometries = findGeometry(gltf.scene);
+    const vertices = geometries.flatMap((geometry: any) => Array.from(geometry.attributes.position.array));
+    const indices = geometries.flatMap((geometry: any) => Array.from(geometry.index.array));
+    console.log(geometries);
+
+
+    const [ref, api] = useTrimesh<THREE.Mesh>(() => ({
+        mass: 3,
+        args: [vertices, indices],
+        position: [5, 5, 0]
+    }));
+
+    useControls("Shiba", {
+        "reset": button(() => {
+            api.velocity.set(0, 0, 0);
+            api.angularVelocity.set(0, 0, 0);
+            api.position.set(5, 5, 0);
+        }),
+    });
+    return (
+        <mesh ref={ref} onPointerDown={() => {
+            const position = new THREE.Vector3();
+            ref.current!.getWorldPosition(position);
+            const force = position.clone().negate().normalize().multiplyScalar(8000);
+            api.applyForce(force.toArray(), [0, 0, 0]);
+            console.log('click')
+        }}>
+            <primitive object={gltf.scene} />
+        </mesh>
+    );
+}
+
+const ReflectiveSphere = () => {
+    const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(128, {
+        format: THREE.RGBAFormat,
+        generateMipmaps: true,
+        minFilter: THREE.LinearMipmapLinearFilter
+    });
+    const [ref, api] = useSphere<THREE.Mesh>(() => ({ args: [1], mass: 5 }));
+    const cubeCamera = useRef<THREE.CubeCamera>(null);
+    // const sphereRef = useRef<THREE.Mesh>(null);
+
+    useFrame(({ gl, scene }) => {
+        const position = new THREE.Vector3();
+        ref.current!.getWorldPosition(position);
+        const force = position.clone().normalize().multiplyScalar(-20);
+        api.applyForce(force.toArray(), [0, 0, 0]);
+        if (ref.current) {
+            ref.current.visible = false;
+            cubeCamera.current!.update(gl, scene);
+            ref.current.visible = true;
+        }
+    });
+
+    return (
+        <>
+            <mesh ref={ref} position={[-10, 10, 10]}>
+                <cubeCamera ref={cubeCamera} args={[0.1, 1000, cubeRenderTarget]} />
+                <sphereGeometry args={[1, 32, 16]} />
+                <meshPhongMaterial envMap={cubeRenderTarget.texture} />
+            </mesh>
+        </>
+    );
+};
 
 
 const Example = () => {
@@ -116,7 +216,7 @@ const Example = () => {
     return <>
         <Canvas shadows dpr={[1, 1.5]} camera={{ position: [0, 15, 15], fov: 70, near: 1, far: 1000 }}>
             <color attach="background" args={['#dfdfdf']} />
-            <ambientLight intensity={2} />
+            <ambientLight intensity={0.6} />
             {/* <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow /> */}
             <SpotLight />
             {!isDragging && <OrbitControls />}
@@ -126,10 +226,12 @@ const Example = () => {
                     <Box position={[-2, 0, 5]} castShadow isDragging={isDragging} />
                 </DragControls> */}
                 <Sphere position={[10, 10, 5]} />
-
+                <Environment files={"assets/goegap_road_1k.hdr"} />
+                <Clump2 />
                 <Clump />
                 <Plane position={[0, -5, 0]} receiveShadow />
-
+                <Shiba />
+                <ReflectiveSphere />
                 <Debug color="black" scale={1.1}>
                     {/* <Box position={[0, 0, 5]} /> */}
                     {/* <Plane position={[0, 0, -10]} rotation={[0, 0, 0]} receiveShadow />

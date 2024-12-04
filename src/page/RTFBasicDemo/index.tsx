@@ -17,9 +17,10 @@ const Box = () => {
 }
 
 const RTFBasicDemo = () => {
-    return <Canvas camera={{ position: [5, 5, 5] }} >
-        <OrbitControls />
+    return <Canvas >
+        <perspectiveCamera position={[5, 5, 5]} />
         <Box />
+        <OrbitControls />
     </Canvas>
 }
 

@@ -25,6 +25,7 @@ import Demo from "../page/Demo";
 import RTFBasicDemo from "../page/RTFBasicDemo";
 import LightDemo from "../page/Light";
 import Example from "../page/example";
+import Panoramic from "../page/Panoramic";
 // import Blender from "../page/blender";
 const Dashboard = bundleIcon(Board20Filled, Board20Regular);
 const Announcements = bundleIcon(MegaphoneLoud20Filled, MegaphoneLoud20Regular);
@@ -90,6 +91,12 @@ export const Routes = [
         name: "RTFBasicDemo",
         icon: <Dashboard />,
         element: <RTFBasicDemo />,
+    },
+    {
+        path: "/Panoramic",
+        name: "Panoramic",
+        icon: <Dashboard />,
+        element: <Panoramic />,
     },
     {
         path: "/light",

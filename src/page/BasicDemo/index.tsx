@@ -26,26 +26,25 @@ const BasicDemo = () => {
         const scene = new THREE.Scene(); //创建场景
         scene.background = new THREE.Color("white");
 
+        // 相机
+        const camera = new THREE.PerspectiveCamera(75, box.clientWidth / box.clientHeight, 0.1, 1000);
+        camera.position.set(5, 5, 5);
+        camera.lookAt(0, 0, 0);
 
         // 物体
         const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5); //创建几何体
-        // const geometry = new THREE.SphereGeometry(1, 32, 16);
         const material = new THREE.MeshBasicMaterial({ color: 0x049ef4 }); //创建材质
         const cube = new THREE.Mesh(geometry, material); //创建物体 物体由材质与几何体组成
         cube.position.set(0, 2, 2);
         scene.add(cube);
 
-        //渲染器
+        // 渲染器
         const renderer = new THREE.WebGLRenderer();
         renderer.setSize(box.clientWidth, box.clientHeight);
         box.appendChild(renderer.domElement);
 
-        //相机
-        const camera = new THREE.PerspectiveCamera(75, box.clientWidth / box.clientHeight, 0.1, 1000);
-        camera.position.set(5, 5, 5);
-        camera.lookAt(0, 0, 0);
 
-        //控制器
+        // 控制器
         const controls = new OrbitControls(camera, renderer.domElement);
 
         // 渲染
